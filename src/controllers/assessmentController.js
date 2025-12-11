@@ -1,13 +1,10 @@
 
 import Assessment from '../models/Assessment.js';
 import AssessmentResponse from '../models/AssessmentResponse.js';
-
-// Import services
 import scoringService from '../services/scoringService.js';
 import reliabilityService from '../services/reliabilityService.js';
 import shareService from '../services/shareService.js';
 
-// For generating unique IDs
 import { randomUUID } from 'crypto';
 
 
@@ -285,27 +282,20 @@ export const createSampleAssessment = async (req, res) => {
 };
 
 
-// ===================================================
-// HELPER FUNCTION: Validate Answers
-// Checks if answers are valid
-// ===================================================
+
 const validateAnswers = (answers, items) => {
-  // Create map of valid items
   const itemMap = {};
   items.forEach(item => {
     itemMap[item.itemId] = item;
   });
   
-  // Validate each answer
   return answers.map(answer => {
     const item = itemMap[answer.itemId];
     
-    // Check if item exists
     if (!item) {
       throw new Error(`Invalid itemId: ${answer.itemId}`);
     }
     
-    // Check if value is in valid range
     if (answer.value !== null && answer.value !== undefined) {
       if (answer.value < item.minValue || answer.value > item.maxValue) {
         throw new Error(
@@ -314,7 +304,6 @@ const validateAnswers = (answers, items) => {
       }
     }
     
-    // Return validated answer
     return {
       itemId: answer.itemId,
       value: answer.value,
@@ -324,9 +313,7 @@ const validateAnswers = (answers, items) => {
 };
 
 
-// ===================================================
-// EXPORT ALL FUNCTIONS
-// ===================================================
+
 export default {
   submitAssessment,
   getResults,

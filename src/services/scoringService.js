@@ -1,17 +1,13 @@
 
 export const scoreAssessment = async (assessment, answers) => {
   
-  // Step 1: Group answers by dimension
   const groupedAnswers = groupByDimension(assessment, answers);
   
-  // Step 2: Calculate score for each dimension
   const dimensionScores = [];
   
   for (const dimension of assessment.dimensions) {
-    // Get answers for this dimension
     const dimAnswers = groupedAnswers[dimension.dimensionId] || [];
     
-    // Calculate score
     const score = calculateDimensionScore(
       dimension,
       dimAnswers,
@@ -21,10 +17,8 @@ export const scoreAssessment = async (assessment, answers) => {
     dimensionScores.push(score);
   }
   
-  // Step 3: Calculate overall score (average of all dimensions)
   const overallScore = calculateOverallScore(dimensionScores);
   
-  // Step 4: Return results
   return {
     dimensions: dimensionScores,
     overallScore: overallScore,
@@ -33,17 +27,12 @@ export const scoreAssessment = async (assessment, answers) => {
 };
 
 
-// ===================================================
-// FUNCTION 2: CALCULATE SCORE FOR ONE DIMENSION
-// ===================================================
 export const calculateDimensionScore = (dimension, answers, allItems) => {
   
-  // Get items (questions) for this dimension
   const items = allItems.filter(
     item => item.dimensionId === dimension.dimensionId
   );
   
-  // If no items, return empty score
   if (items.length === 0) {
     return {
       dimensionId: dimension.dimensionId,
@@ -54,7 +43,6 @@ export const calculateDimensionScore = (dimension, answers, allItems) => {
     };
   }
   
-  // Calculate raw score
   let rawScore = 0;
   let answeredCount = 0;
   
@@ -120,21 +108,16 @@ export const calculateDimensionScore = (dimension, answers, allItems) => {
 };
 
 
-// ===================================================
-// FUNCTION 3: REVERSE SCORE (for reversed questions)
 // Formula: (max + min) - value
 // Example: Scale 1-5, answer 2 → (5+1)-2 = 4
-// ===================================================
 export const reverseScore = (value, minValue, maxValue) => {
   return (maxValue + minValue) - value;
 };
 
 
-// ===================================================
 // FUNCTION 4: NORMALIZE SCORE to 0-100 scale
 // Formula: ((raw - min) / (max - min)) × 100
 // Example: raw=12, min=3, max=15 → 75
-// ===================================================
 export const normalizeScore = (rawScore, minPossible, maxPossible) => {
   // Prevent division by zero
   if (maxPossible === minPossible) {
@@ -148,11 +131,9 @@ export const normalizeScore = (rawScore, minPossible, maxPossible) => {
 };
 
 
-// ===================================================
 // FUNCTION 5: CALCULATE PERCENTILE using bell curve
 // Assumes normal distribution (mean=50, sd=15)
 // Returns where you rank: 0-100
-// ===================================================
 export const calculatePercentile = (normalizedScore) => {
   const mean = 50;           // Average score
   const stdDev = 15;         // Standard deviation
@@ -167,11 +148,9 @@ export const calculatePercentile = (normalizedScore) => {
 };
 
 
-// ===================================================
 // FUNCTION 6: NORMAL DISTRIBUTION CDF
 // Bell curve math - don't worry about understanding this!
 // Just know: Converts z-score to percentile
-// ===================================================
 export const normalCDF = (z) => {
   // Mathematical approximation formula for bell curve
   const t = 1 / (1 + 0.2316419 * Math.abs(z));
@@ -182,10 +161,8 @@ export const normalCDF = (z) => {
 };
 
 
-// ===================================================
 // FUNCTION 7: CALCULATE OVERALL SCORE
 // Simple average of all dimension scores
-// ===================================================
 export const calculateOverallScore = (dimensionScores) => {
   if (dimensionScores.length === 0) {
     return 0;
@@ -205,10 +182,8 @@ export const calculateOverallScore = (dimensionScores) => {
 };
 
 
-// ===================================================
 // FUNCTION 8: GROUP ANSWERS BY DIMENSION
 // Organizes answers into categories for easier processing
-// ===================================================
 export const groupByDimension = (assessment, answers) => {
   const grouped = {};
   
@@ -231,9 +206,7 @@ export const groupByDimension = (assessment, answers) => {
 };
 
 
-// ===================================================
-// DEFAULT EXPORT - Main function others will use
-// ===================================================
+
 export default {
   scoreAssessment,
   calculateDimensionScore,

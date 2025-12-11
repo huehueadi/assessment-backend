@@ -1,29 +1,21 @@
-// =====================================================
 // SHARE SERVICE
 // Creates safe, shareable profiles
-// =====================================================
 
-// =====================================================
 // WHAT'S SAFE TO SHARE:
-// ✅ Dimension names ("Extraversion")
-// ✅ Scores (0-100 scale)
-// ✅ Percentiles (rank vs others)
-// ✅ Labels ("high", "moderate", "low")
+// Dimension names ("Extraversion")
+//Scores (0-100 scale)
+// Percentiles (rank vs others)
+// Labels ("high", "moderate", "low")
 //
 // WHAT'S HIDDEN:
-// ❌ Raw answers to questions
-// ❌ Individual item responses
-// ❌ Reliability check details
-// ❌ User's real ID
-// =====================================================
+// Raw answers to questions
+// Individual item responses
+// Reliability check details
+// User's real ID
 
 
-// ===================================================
-// FUNCTION 1: Generate Share Profile (Single User)
-// ===================================================
 export const generateSharePayload = (assessmentResponse, includePercentiles = true) => {
   
-  // Check if response quality is good enough
   if (!assessmentResponse.reliability.isUsable) {
     return {
       error: 'Response quality too low to share',
@@ -31,7 +23,6 @@ export const generateSharePayload = (assessmentResponse, includePercentiles = tr
     };
   }
   
-  // Create dimension summaries (safe data only)
   const dimensions = assessmentResponse.scores.dimensions.map(dim => ({
     name: dim.name,
     score: dim.normalizedScore,
@@ -40,7 +31,6 @@ export const generateSharePayload = (assessmentResponse, includePercentiles = tr
     description: getScoreDescription(dim.name, dim.normalizedScore)
   }));
   
-  // Return safe profile
   return {
     profileId: generateProfileId(assessmentResponse.responseId),
     userId: assessmentResponse.userId,
@@ -54,32 +44,25 @@ export const generateSharePayload = (assessmentResponse, includePercentiles = tr
 };
 
 
-// ===================================================
-// FUNCTION 2: Generate Compare Profile (Two Users)
-// ===================================================
+// Generate Compare Profile (Two Users)
 export const generateComparePayload = (response1, response2) => {
   
-  // Check both responses are usable
   if (!response1.reliability.isUsable || !response2.reliability.isUsable) {
     return {
       error: 'One or both profiles have insufficient quality'
     };
   }
   
-  // Compare each dimension
   const dimensionComparisons = compareDimensions(
     response1.scores.dimensions,
     response2.scores.dimensions
   );
   
-  // Calculate overall similarity
   const overallSimilarity = calculateOverallSimilarity(dimensionComparisons);
   
-  // Find similar and different areas
   const similarities = dimensionComparisons.filter(d => d.similarity >= 75);
   const differences = dimensionComparisons.filter(d => d.similarity < 75);
   
-  // Return comparison
   return {
     comparisonId: generateComparisonId(response1.responseId, response2.responseId),
     profile1: {
@@ -105,22 +88,16 @@ export const generateComparePayload = (response1, response2) => {
 };
 
 
-// ===================================================
 // FUNCTION 3: Compare Dimensions Between Two Users
-// ===================================================
 export const compareDimensions = (dimensions1, dimensions2) => {
   const comparisons = [];
   
   for (const dim1 of dimensions1) {
-    // Find matching dimension in second user
     const dim2 = dimensions2.find(d => d.dimensionId === dim1.dimensionId);
     
     if (dim2) {
-      // Calculate difference
       const diff = Math.abs(dim1.normalizedScore - dim2.normalizedScore);
       
-      // Similarity = 100 - difference
-      // Example: Scores 80 and 75 → diff=5 → similarity=95
       const similarity = 100 - diff;
       
       comparisons.push({
@@ -140,10 +117,7 @@ export const compareDimensions = (dimensions1, dimensions2) => {
 };
 
 
-// ===================================================
-// FUNCTION 4: Calculate Overall Similarity
-// Simple average of all dimension similarities
-// ===================================================
+// Calculate Overall Similarity
 export const calculateOverallSimilarity = (comparisons) => {
   if (comparisons.length === 0) return 0;
   
@@ -156,10 +130,8 @@ export const calculateOverallSimilarity = (comparisons) => {
 };
 
 
-// ===================================================
-// FUNCTION 5: Get Score Level Label
+// Get Score Level Label
 // Converts number to word
-// ===================================================
 export const getScoreLevel = (normalizedScore) => {
   if (normalizedScore >= 80) return 'very_high';
   if (normalizedScore >= 60) return 'high';
@@ -169,9 +141,7 @@ export const getScoreLevel = (normalizedScore) => {
 };
 
 
-// ===================================================
-// FUNCTION 6: Get Human-Readable Description
-// ===================================================
+//  Get Human-Readable Description
 export const getScoreDescription = (dimensionName, score) => {
   const level = getScoreLevel(score);
   
@@ -187,9 +157,7 @@ export const getScoreDescription = (dimensionName, score) => {
 };
 
 
-// ===================================================
-// FUNCTION 7: Get Similarity Category
-// ===================================================
+//  Get Similarity Category
 export const getSimilarityCategory = (similarity) => {
   if (similarity >= 90) return 'very_similar';
   if (similarity >= 75) return 'similar';
@@ -198,9 +166,7 @@ export const getSimilarityCategory = (similarity) => {
 };
 
 
-// ===================================================
-// FUNCTION 8: Get Compatibility Level
-// ===================================================
+// Get Compatibility Level
 export const getCompatibilityLevel = (overallSimilarity) => {
   if (overallSimilarity >= 85) return 'very_high';
   if (overallSimilarity >= 70) return 'high';
@@ -210,9 +176,7 @@ export const getCompatibilityLevel = (overallSimilarity) => {
 };
 
 
-// ===================================================
-// FUNCTION 9: Get Comparison Interpretation
-// ===================================================
+// Get Comparison Interpretation
 export const getComparisonInterpretation = (dimensionName, score1, score2) => {
   const diff = Math.abs(score1 - score2);
   
@@ -228,12 +192,9 @@ export const getComparisonInterpretation = (dimensionName, score1, score2) => {
 };
 
 
-// ===================================================
-// FUNCTION 10: Calculate Profile Strength
+// Calculate Profile Strength
 // How "defined" the profile is (extreme vs moderate)
-// ===================================================
 export const getProfileStrength = (dimensions) => {
-  // Calculate average distance from middle (50)
   const avgDeviation = dimensions.reduce((sum, dim) => {
     return sum + Math.abs(dim.normalizedScore - 50);
   }, 0) / dimensions.length;
@@ -245,9 +206,7 @@ export const getProfileStrength = (dimensions) => {
 };
 
 
-// ===================================================
-// FUNCTION 11: Find Strongest Similarity or Difference
-// ===================================================
+// Find Strongest Similarity or Difference
 export const findStrongest = (comparisons, type) => {
   if (comparisons.length === 0) return null;
   
@@ -273,10 +232,9 @@ export const findStrongest = (comparisons, type) => {
 };
 
 
-// ===================================================
-// FUNCTION 12: Generate Anonymous Profile ID
+
+// Generate Anonymous Profile ID
 // Hashes the real ID for privacy
-// ===================================================
 export const generateProfileId = (responseId) => {
   // Convert to base64 and take first 12 characters
   const hash = Buffer.from(responseId).toString('base64').substring(0, 12);
@@ -284,20 +242,14 @@ export const generateProfileId = (responseId) => {
 };
 
 
-// ===================================================
-// FUNCTION 13: Generate Comparison ID
-// ===================================================
+//  Generate Comparison ID
 export const generateComparisonId = (responseId1, responseId2) => {
-  // Sort IDs to ensure same comparison always gets same ID
   const combined = [responseId1, responseId2].sort().join('_');
   const hash = Buffer.from(combined).toString('base64').substring(0, 16);
   return `compare_${hash}`;
 };
 
 
-// ===================================================
-// DEFAULT EXPORT
-// ===================================================
 export default {
   generateSharePayload,
   generateComparePayload,
